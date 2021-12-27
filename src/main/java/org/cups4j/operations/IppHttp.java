@@ -1,17 +1,24 @@
 package org.cups4j.operations;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyStore;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.cups4j.CupsAuthentication;
 import org.cups4j.CupsPrinter;
+import org.cups4j.CupsSSL;
+
+import javax.net.ssl.SSLContext;
 
 public final class IppHttp {
 
@@ -32,11 +39,49 @@ public final class IppHttp {
 			.setRetryHandler(new DefaultHttpRequestRetryHandler())
 			.build();
 
+	private static final CloseableHttpClient httpsClient = HttpClientBuilder.create()
+			.disableCookieManagement()
+			.disableRedirectHandling()
+			.setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+			.evictExpiredConnections()
+			.setMaxConnPerRoute(MAX_CONNECTION_BUFFER)
+			.setMaxConnTotal(MAX_CONNECTION_BUFFER)
+			.setRetryHandler(new DefaultHttpRequestRetryHandler())
+			.build();
+
 	private IppHttp() {
 	}
 
-	public static CloseableHttpClient createHttpClient() {
+	public static CloseableHttpClient createHttpClient()
+	{
 		return client;
+	}
+
+	public static CloseableHttpClient createHttpsClient(CupsSSL cupsSSL) throws Exception
+	{
+		KeyStore keyStore = null;
+		try (InputStream keyStoreStream = IppHttp.class.getClassLoader().getResourceAsStream(cupsSSL.getKeyStorePath()))
+		{
+			keyStore = KeyStore.getInstance("JKS"); // or "PKCS12"
+			keyStore.load(keyStoreStream, cupsSSL.getKeyStorePass().toCharArray());
+		}
+
+		SSLContext sslContext = SSLContexts.custom()
+				.loadKeyMaterial(keyStore ,  cupsSSL.getKeyPass().toCharArray()) // use null as second param if you don't have a separate key password
+				.build();
+
+		final CloseableHttpClient httpsClient = HttpClientBuilder.create()
+				.disableCookieManagement()
+				.disableRedirectHandling()
+				.setHostnameVerifier(SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER)
+				.setSSLContext(sslContext)
+				.evictExpiredConnections()
+				.setMaxConnPerRoute(MAX_CONNECTION_BUFFER)
+				.setMaxConnTotal(MAX_CONNECTION_BUFFER)
+				.setRetryHandler(new DefaultHttpRequestRetryHandler())
+				.build();
+
+		return httpsClient;
 	}
 
 	public static void setHttpHeaders(HttpPost httpPost, CupsPrinter targetPrinter,
@@ -56,5 +101,4 @@ public final class IppHttp {
 		    httpPost.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
 	   }
 	}
-
 }

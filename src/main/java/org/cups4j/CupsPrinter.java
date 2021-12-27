@@ -66,17 +66,20 @@ public class CupsPrinter {
   
   private final CupsAuthentication creds;
 
+  private final CupsSSL cupsSSL;
+
   /**
    * Constructor
    *
    * @param printerURL
    * @param printerName
    */
-  public CupsPrinter(CupsAuthentication creds, URL printerURL, String printerName) {
+  public CupsPrinter(CupsAuthentication creds, URL printerURL, String printerName , CupsSSL cupsSSL) {
 	  super();
 	  this.creds = creds;
 	  this.printerURL = printerURL;
 	  this.name = printerName;
+	  this.cupsSSL = cupsSSL;
 	  updateClassAttribute();
   }
 
@@ -166,7 +169,7 @@ public class CupsPrinter {
       addAttribute(attributes, "job-attributes", "sides:keyword:two-sided-long-edge");
     }
     IppPrintJobOperation command = new IppPrintJobOperation(printerURL.getPort());
-    IppResult ippResult = command.request(this, printerURL, attributes, document, creds);
+    IppResult ippResult = command.request(this, printerURL, attributes, document, creds  , cupsSSL);
     PrintRequestResult result = new PrintRequestResult(ippResult);
     // IppResultPrinter.print(result);
 
@@ -298,7 +301,7 @@ public class CupsPrinter {
    */
   public PrintRequestResult print(PrintJob job, int jobId, boolean lastDocument) {
     IppSendDocumentOperation op = new IppSendDocumentOperation(printerURL.getPort(), jobId, lastDocument);
-    IppResult ippResult = op.request(this, printerURL, job, creds);
+    IppResult ippResult = op.request(this, printerURL, job, creds , cupsSSL);
     PrintRequestResult result = new PrintRequestResult(ippResult);
     result.setJobId(jobId);
     return result;
@@ -339,7 +342,7 @@ public class CupsPrinter {
   public List<PrintJobAttributes> getJobs(WhichJobsEnum whichJobs, String user, boolean myJobs) throws Exception {
     IppGetJobsOperation command = new IppGetJobsOperation(printerURL.getPort());
 
-    return command.getPrintJobs(this, whichJobs, user, myJobs, creds);
+    return command.getPrintJobs(this, whichJobs, user, myJobs, creds , cupsSSL);
   }
 
   /**
@@ -364,7 +367,7 @@ public class CupsPrinter {
   public JobStateEnum getJobStatus(String userName, int jobID) throws Exception {
     IppGetJobAttributesOperation command = new IppGetJobAttributesOperation(printerURL.getPort());
     PrintJobAttributes job = command.getPrintJobAttributes(printerURL.getHost(), userName, 
-    		printerURL.getPort(), jobID, creds);
+    		printerURL.getPort(), jobID, creds , cupsSSL);
 
     return job.getJobState();
   }

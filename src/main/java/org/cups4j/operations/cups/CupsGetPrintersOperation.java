@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.cups4j.CupsAuthentication;
 import org.cups4j.CupsPrinter;
+import org.cups4j.CupsSSL;
 import org.cups4j.PrinterStateEnum;
 import org.cups4j.ipp.attributes.Attribute;
 import org.cups4j.ipp.attributes.AttributeGroup;
@@ -46,7 +47,7 @@ public class CupsGetPrintersOperation extends IppOperation {
     this.ippPort = port;
   }
 
-  public List<CupsPrinter> getPrinters(String hostname, int port, CupsAuthentication creds) throws Exception {
+  public List<CupsPrinter> getPrinters(String hostname, int port, CupsAuthentication creds , CupsSSL cupsSSL) throws Exception {
     List<CupsPrinter> printers = new ArrayList<CupsPrinter>();
 
     Map<String, String> map = new HashMap<String, String>();
@@ -56,7 +57,7 @@ public class CupsGetPrintersOperation extends IppOperation {
     // map.put("requested-attributes", "all");
     this.ippPort = port;
 
-    IppResult result = request(null, new URL("http://" + hostname + ":" + port + "/printers"), map, creds);
+    IppResult result = request(null, new URL("https://" + hostname + ":" + port + "/printers"), map, creds , cupsSSL);
 
     for (AttributeGroup group : result.getAttributeGroupList()) {
       CupsPrinter printer = null;
@@ -134,7 +135,7 @@ public class CupsGetPrintersOperation extends IppOperation {
           throw new Exception(t);
         }
 
-        printer = new CupsPrinter(creds, printerUrl, printerName);
+        printer = new CupsPrinter(creds, printerUrl, printerName , cupsSSL);
         printer.setState(printerState);
         printer.setLocation(printerLocation);
         printer.setDescription(printerDescription);

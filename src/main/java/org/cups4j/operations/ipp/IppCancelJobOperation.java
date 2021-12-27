@@ -20,10 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cups4j.CupsAuthentication;
-import org.cups4j.CupsClient;
-import org.cups4j.CupsPrinter;
-import org.cups4j.PrintRequestResult;
+import org.cups4j.*;
 import org.cups4j.operations.IppOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +43,7 @@ public class IppCancelJobOperation extends IppOperation {
 
   /**
    * 
-   * @param url
+   * @param uri
    *          printer-uri
    * @param map
    *          attributes
@@ -96,26 +93,38 @@ public class IppCancelJobOperation extends IppOperation {
    * @param hostname
    * @param userName
    * @param jobID
-   * @param message
+   * @param printer
+   * @param creds
+   * @param cupsSSL
    * @return true on successful cancelation otherwise false.
    * @throws Exception
    */
-  public boolean cancelJob(String hostname, String userName, int jobID, 
-		  CupsPrinter printer, CupsAuthentication creds) throws Exception {
+  public boolean cancelJob(String hostname, String userName, int jobID,
+                           CupsPrinter printer, CupsAuthentication creds , CupsSSL  cupsSSL) throws Exception {
 
     Map<String, String> map = new HashMap<String, String>();
+    String schema = "";
+    if(cupsSSL != null)
+    {
+      schema = "https://";
+    }
+    else
+    {
+      schema = "http://";
+    }
 
     if (userName == null) {
       userName = CupsClient.DEFAULT_USER;
     }
     map.put("requesting-user-name", userName);
 
-    URL url = new URL("http://" + hostname + "/jobs/" + Integer.toString(jobID));
-    URL urlService = new URL("http://" + hostname + ":" + ippPort + "/jobs/" + Integer.toString(jobID));
+
+    URL url = new URL(schema + hostname + "/jobs/" + Integer.toString(jobID));
+    URL urlService = new URL(schema + hostname + ":" + ippPort + "/jobs/" + Integer.toString(jobID));
     
     map.put("job-uri", url.toString());
 
-    IppResult result = request(printer, urlService, map, creds);
+    IppResult result = request(printer, urlService, map, creds , cupsSSL);
 
     return new PrintRequestResult(result).isSuccessfulResult();
   }

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.cups4j.CupsAuthentication;
+import org.cups4j.CupsSSL;
 import org.cups4j.JobStateEnum;
 import org.cups4j.PrintJobAttributes;
 import org.cups4j.ipp.attributes.Attribute;
@@ -100,8 +101,8 @@ public class IppGetJobAttributesOperation extends IppOperation {
     return ippBuf;
   }
 
-  public PrintJobAttributes getPrintJobAttributes(String hostname, String userName, 
-		  int port, int jobID, CupsAuthentication creds) throws Exception {
+  public PrintJobAttributes getPrintJobAttributes(String hostname, String userName,
+                                                  int port, int jobID, CupsAuthentication creds , CupsSSL cupsSSL) throws Exception {
     PrintJobAttributes job = null;
 
     Map<String, String> map = new HashMap<String, String>();
@@ -110,7 +111,7 @@ public class IppGetJobAttributesOperation extends IppOperation {
 
     map.put("requested-attributes", "all");
     map.put("requesting-user-name", userName);
-    IppResult result = request(null, new URL("http://" + hostname + "/jobs/" + jobID), map, creds);
+    IppResult result = request(null, new URL("http://" + hostname + "/jobs/" + jobID), map, creds , cupsSSL);
 
     // IppResultPrinter.print(result);
     for (AttributeGroup group : result.getAttributeGroupList()) {

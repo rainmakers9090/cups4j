@@ -18,6 +18,7 @@ import ch.ethz.vppserver.ippclient.IppResponse;
 import ch.ethz.vppserver.ippclient.IppResult;
 import ch.ethz.vppserver.ippclient.IppTag;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -29,6 +30,7 @@ import org.apache.http.util.EntityUtils;
 import org.cups4j.CupsAuthentication;
 import org.cups4j.CupsClient;
 import org.cups4j.CupsPrinter;
+import org.cups4j.CupsSSL;
 import org.cups4j.ipp.attributes.Attribute;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +62,13 @@ public abstract class IppOperation {
   }
 
   public IppResult request(CupsPrinter printer, URL url, Map<String, String> map,
-		  CupsAuthentication creds) throws Exception {
-    return sendRequest(printer, url, getIppHeader(url, map), creds);
+		  CupsAuthentication creds , CupsSSL cupsSSL) throws Exception {
+    return sendRequest(printer, url, getIppHeader(url, map), creds , cupsSSL);
   }
 
   public IppResult request(CupsPrinter printer, URL url, Map<String, String> map, InputStream document,
-		  CupsAuthentication creds) throws Exception {
-    return sendRequest(printer, url, getIppHeader(url, map), document, creds);
+		  CupsAuthentication creds ,  CupsSSL cupsSSL) throws Exception {
+    return sendRequest(printer, url, getIppHeader(url, map), document, creds , cupsSSL);
   }
 
   /**
@@ -125,11 +127,11 @@ public abstract class IppOperation {
    * @return result
    * @throws Exception 
    */
-  private IppResult sendRequest(CupsPrinter printer, URL url, ByteBuffer ippBuf,
-		  CupsAuthentication creds) throws Exception  {
-    IppResult result = sendRequest(printer, url, ippBuf, null, creds);
+  protected IppResult sendRequest(CupsPrinter printer, URL url, ByteBuffer ippBuf,
+		  CupsAuthentication creds , CupsSSL cupsSSL) throws Exception  {
+    IppResult result = sendRequest(printer, url, ippBuf, null, creds , cupsSSL);
     if (result.getHttpStatusCode() >= 300) {
-      throw new IOException("HTTP error! Status code:  " + result.getHttpStatusResponse());
+      throw new IOException("HTTP error! Status code:  " + result.getHttpStatusCode());
     }
     return result;
   }
@@ -144,8 +146,11 @@ public abstract class IppOperation {
    * @return result
    * @throws Exception
    */
-  private IppResult sendRequest(CupsPrinter printer, URL url, ByteBuffer ippBuf, InputStream documentStream, CupsAuthentication creds) throws Exception {
+  protected IppResult sendRequest(CupsPrinter printer, URL url, ByteBuffer ippBuf, InputStream documentStream, CupsAuthentication creds ,
+                                CupsSSL cupsSSL) throws Exception {
     IppResult ippResult = null;
+    CloseableHttpClient client = null;
+    HttpPost httpPost = null;
     if (ippBuf == null) {
       return null;
     }
@@ -154,9 +159,18 @@ public abstract class IppOperation {
       return null;
     }
 
-    CloseableHttpClient client = IppHttp.createHttpClient();
-	
-    HttpPost httpPost = new HttpPost(new URI("http://" + url.getHost() + ":" + ippPort) + url.getPath());
+    if(cupsSSL != null)
+    {
+       int port = cupsSSL.getSslPort() != 0 ? cupsSSL.getSslPort() : ippPort;
+       client = IppHttp.createHttpsClient(cupsSSL);
+       httpPost = new HttpPost(new URI("https://" + url.getHost() + ":" + port
+               + url.getPath()));
+    }
+    else {
+       client = IppHttp.createHttpClient();
+       httpPost = new HttpPost(new URI("http://" + url.getHost() + ":" + ippPort) + url.getPath());
+    }
+
     IppHttp.setHttpHeaders(httpPost, printer, creds);
 
     byte[] bytes = new byte[ippBuf.limit()];

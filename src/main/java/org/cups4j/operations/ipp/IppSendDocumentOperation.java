@@ -27,10 +27,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.cups4j.CupsAuthentication;
-import org.cups4j.CupsClient;
-import org.cups4j.CupsPrinter;
-import org.cups4j.PrintJob;
+import org.cups4j.*;
 import org.cups4j.ipp.attributes.AttributeGroup;
 import org.cups4j.operations.IppHttp;
 import org.slf4j.Logger;
@@ -70,7 +67,7 @@ public class IppSendDocumentOperation extends IppPrintJobOperation {
     }
 
     public IppResult request(CupsPrinter printer, URL printerURL, 
-    		PrintJob printJob, CupsAuthentication creds) {
+    		PrintJob printJob, CupsAuthentication creds , CupsSSL cupsSSL) {
         InputStream document = printJob.getDocument();
         String userName = printJob.getUserName();
         String jobName = printJob.getJobName();
@@ -142,7 +139,7 @@ public class IppSendDocumentOperation extends IppPrintJobOperation {
             addAttribute(attributes, "job-attributes", "sides:keyword:two-sided-long-edge");
         }
         try {
-            IppResult ippResult = request(printer, printerURL, attributes, document, creds);
+            IppResult ippResult = request(printer, printerURL, attributes, document, creds , cupsSSL);
             if (ippResult.getHttpStatusCode() >= 300) {
                 String msg = "";
                 List<AttributeGroup> attributeGroupList = ippResult.getAttributeGroupList();
@@ -172,15 +169,15 @@ public class IppSendDocumentOperation extends IppPrintJobOperation {
     }
 
     @Override
-    public IppResult request(CupsPrinter printer, URL url, Map<String, String> map, 
-    		InputStream document, CupsAuthentication creds) throws IOException {
+    public IppResult request(CupsPrinter printer, URL url, Map<String, String> map,
+                             InputStream document, CupsAuthentication creds , CupsSSL cupSSL) throws IOException {
         ByteBuffer ippHeader = getIppHeader(url, map);
         try {
-            IppResult ippResult = sendRequest(printer, url.toURI(), ippHeader, document, creds);
+            IppResult ippResult = sendRequest(printer, url.toURI(), ippHeader, document, creds , cupSSL);
             if ((ippResult.getHttpStatusCode() == 426) && "http".equalsIgnoreCase(url.getProtocol())) {
                 URI https = URI.create(url.toURI().toString().replace("http", "https"));
                 LOG.warn("Access with {} failed - will try now {} as printerURL.", url, https);
-                ippResult = sendRequest(printer, https, getIppHeader(url, map), document, creds);
+                ippResult = sendRequest(printer, https, getIppHeader(url, map), document, creds , cupSSL);
             }
             return ippResult;
         } catch (URISyntaxException ex) {
@@ -260,7 +257,7 @@ public class IppSendDocumentOperation extends IppPrintJobOperation {
     }
 
     private IppResult sendRequest(CupsPrinter printer, URI uri, ByteBuffer ippBuf, 
-    		InputStream documentStream, CupsAuthentication creds) throws IOException {
+    		InputStream documentStream, CupsAuthentication creds , CupsSSL cupsSSL) throws IOException {
         HttpPost httpPost = new HttpPost(uri);
         httpPost.setConfig(RequestConfig.custom().setSocketTimeout(10000).setConnectTimeout(10000).build());
         

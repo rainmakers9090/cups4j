@@ -28,7 +28,7 @@ public final class CupsPrinterTest {
     private CupsPrinter printer;
 
     @Before
-    public void setUpPrinter() throws Exception {    
+    public void setUpPrinter() throws Exception {
         printer = getPrinter();
         assertNotNull(printer);
         LOG.info("Printer {} was choosen for testing.", printer);

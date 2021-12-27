@@ -6,3 +6,7 @@ cups4j.iml
 /deploy.txt
 .idea
 /doc/
+.DS_Store
+src/.DS_Store
+src/main/.DS_Store
+src/test/.DS_Store

@@ -158,7 +158,7 @@ public class IppSendDocumentOperationTest extends AbstractIppOperationTest {
         attributes.put("job-name", "testosteron");
         attributes.put("requesting-user-name", "oboehm");
         ByteArrayInputStream document = new ByteArrayInputStream("Hello World!\n".getBytes());
-        IppResult ippResult = operation.request(printer, printerURL, attributes, document, null);
+        IppResult ippResult = operation.request(printer, printerURL, attributes, document, null , null);
         assertEquals(200, ippResult.getHttpStatusCode());
     }
 

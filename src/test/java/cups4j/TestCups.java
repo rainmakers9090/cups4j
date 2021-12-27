@@ -36,8 +36,8 @@ public class TestCups {
    * @return your CupsClient for testing
    */
   public static CupsClient getCupsClient() {
-    String host = System.getProperty("host", "localhost");
-    int port = Integer.parseInt(System.getProperty("port", "631"));
+    String host = System.getProperty("host", "alvd-rdbase2049.manhdev.com");
+    int port = Integer.parseInt(System.getProperty("port", "1631"));
     try {
       return new CupsClient(host, port);
     } catch (Exception ex) {

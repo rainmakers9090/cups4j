@@ -103,8 +103,8 @@ public class IppUtil {
   /**
    * 
    * Encode in default encoding ('utf-8')
-   * 
-   * @see toBytes(str,null)
+   *
+   * @param  str
    * @return array of byte
    * @throws UnsupportedEncodingException
    */
@@ -209,7 +209,7 @@ public class IppUtil {
   /**
    * concatenate nio-ByteBuffers
    * 
-   * @param  ArrayList <ByteBuffer> buffers
+   * @param  @Code{ArrayList} <ByteBuffer> buffers
    * @return ByteBuffer
    */
   public static ByteBuffer concatenateBytebuffers(ArrayList<ByteBuffer> buffers) {

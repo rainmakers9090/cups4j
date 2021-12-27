@@ -41,7 +41,7 @@ public class PrinterAttributes {
   }
 
   /**
-   * @param args
+   * @param host
    */
   public PrinterAttributes(String host) {
     try {
@@ -60,7 +60,7 @@ public class PrinterAttributes {
 
       for (CupsPrinter p : printers) {
         IppGetPrinterAttributesOperation o = new IppGetPrinterAttributesOperation();
-        IppResult result = o.request(p, p.getPrinterURL(), map, new CupsAuthentication("anonymous", "anonymous"));
+        IppResult result = o.request(p, p.getPrinterURL(), map, new CupsAuthentication("anonymous", "anonymous") , null);
         // IppResultPrinter.print(result);
         addPrinterPanel(p.getName(), result);
       }

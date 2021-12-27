@@ -20,10 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cups4j.CupsAuthentication;
-import org.cups4j.CupsClient;
-import org.cups4j.CupsPrinter;
-import org.cups4j.PrintRequestResult;
+import org.cups4j.*;
 import org.cups4j.operations.IppOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +44,7 @@ public class IppHoldJobOperation extends IppOperation {
 
   /**
    * 
-   * @param url
+   * @param uri
    *          printer-uri
    * @param map
    *          attributes
@@ -94,12 +91,14 @@ public class IppHoldJobOperation extends IppOperation {
    * @param hostname
    * @param userName
    * @param jobID
-   * @param message
+   * @param printer
+   * @param creds
+   * @param
    * @return true on successful cancelation otherwise false.
    * @throws Exception
    */
-  public boolean holdJob(String hostname, String userName, int jobID, 
-		  CupsPrinter printer, CupsAuthentication creds) throws Exception {
+  public boolean holdJob(String hostname, String userName, int jobID,
+                         CupsPrinter printer, CupsAuthentication creds , CupsSSL cupsSSL) throws Exception {
 
     Map<String, String> map = new HashMap<String, String>();
 
@@ -111,7 +110,7 @@ public class IppHoldJobOperation extends IppOperation {
     URL url = new URL("http://" + hostname + "/jobs/" + Integer.toString(jobID));
     map.put("job-uri", url.toString());
 
-    IppResult result = request(printer, url, map, creds);
+    IppResult result = request(printer, url, map, creds , cupsSSL);
     // IppResultPrinter.print(result);
 
     return new PrintRequestResult(result).isSuccessfulResult();
